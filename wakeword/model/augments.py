@@ -109,6 +109,12 @@ class MelSpectrograms(nn.Module):
         - spectrogram: The computed mel spectrogram.
         """
         spectrogram = self.transform(waveform)
+
+        # Min-max scale the spectrogram
+        spectrogram_min = spectrogram.min(dim=-1, keepdim=True)[0].min(dim=-2, keepdim=True)[0]
+        spectrogram_max = spectrogram.max(dim=-1, keepdim=True)[0].max(dim=-2, keepdim=True)[0]
+        spectrogram = (spectrogram - spectrogram_min) / (spectrogram_max - spectrogram_min + 1e-6)
+
         return spectrogram
     
 class SpecAugment(nn.Module):
