@@ -76,7 +76,7 @@ class AddNoise(nn.Module):
         return waveform
 
 class MelSpectrograms(nn.Module):
-    def __init__(self, sample_rate=8000, n_mels=13, win_length=512, hop_length=256, f_min=0):
+    def __init__(self, sample_rate=8000, n_mels=13, n_fft=512, win_length=512, hop_length=256, f_min=0):
         """
         Initialize the MelSpectrograms transformation.
 
@@ -92,6 +92,7 @@ class MelSpectrograms(nn.Module):
         self.transform = T.MelSpectrogram(
             sample_rate=sample_rate,
             n_mels=n_mels,
+            n_fft=n_fft,
             win_length=win_length,
             hop_length=hop_length,
             f_min=f_min,
@@ -118,7 +119,7 @@ class MelSpectrograms(nn.Module):
         return spectrogram
     
 class SpecAugment(nn.Module):
-    def _init__(self, rate=0.5, freq_mask_param=6, time_mask_param=2):
+    def __init__(self, rate=0.5, freq_mask_param=6, time_mask_param=2):
         """
         Initialize the SpecAugment transformation.
 
@@ -149,7 +150,7 @@ class SpecAugment(nn.Module):
         
 class WakeWordDataset(Dataset):
 
-    def __init__(self, file_paths, noise_dir, sample_rate=8000, max_length=10000):
+    def __init__(self, file_paths, labels, noise_dir, sample_rate=8000, max_length=10000):
         """
         Initialize the WakeWordDataset.
 
@@ -160,6 +161,7 @@ class WakeWordDataset(Dataset):
         - max_length: The length of the audio recordings. Used for padding and trimming.
         """
         self.file_paths = file_paths
+        self.labels = labels
         self.add_noise = AddNoise(noise_dir)
         self.mel_spectrogram = MelSpectrograms(sample_rate)
         self.max_length = max_length
@@ -183,5 +185,8 @@ class WakeWordDataset(Dataset):
         
         # Apply the SpecAugment transformation
         spectrogram = self.spec_augment(spectrogram)
+
+        # Get the label
+        label = self.labels[idx]
         
-        return spectrogram
+        return (spectrogram, label)
