@@ -4,103 +4,98 @@ import torch
 from collections import deque
 from wakeword.model.augments import MelSpectrograms
 from wakeword.model.model import CNNGRU
+from faster_whisper import WhisperModel
+import time
 
 class AudioListener:
-    def __init__(self, sample_rate=8000, num_seconds=1.25, chunk_size=4000):
-        """
-        Initialize audio listener.
-
-        Parameters:
-        - sample_rate: The sample rate of the audio.
-        - num_seconds: The number of seconds to record.
-        """
-        self.sample_rate = sample_rate
+    def __init__(self, wakeword_sample_rate=8000, transcription_sample_rate=16000, num_seconds=1.25, chunk_size=4000):
+        self.wakeword_sample_rate = wakeword_sample_rate
+        self.transcription_sample_rate = transcription_sample_rate
         self.num_seconds = num_seconds
         self.chunk_size = chunk_size
-        self.buffer_size = int(sample_rate * num_seconds)
-        self.buffer = deque(maxlen=self.buffer_size)
+        self.buffer_size = int(wakeword_sample_rate * num_seconds)
+        self.wakeword_buffer = deque(maxlen=self.buffer_size)
         self.p = pyaudio.PyAudio()
         self.callback = None
+        self.mode = 'wake_word'
+        self.transcription_duration = 3
+        self.transcription_buffer = deque(maxlen=int(transcription_sample_rate * self.transcription_duration))
+        self.stream = None
+        self.should_stop_stream = False  # Flag to stop stream
 
-    def start(self):
-        """
-        Start recording audio.
-        """
+    def start_wakeword_stream(self):
         self.stream = self.p.open(format=pyaudio.paInt16,
                                   channels=1,
-                                  rate=self.sample_rate,
+                                  rate=self.wakeword_sample_rate,
                                   input=True,
-                                  input_device_index=None,
                                   frames_per_buffer=self.chunk_size,
                                   stream_callback=self.stream_callback)
         self.stream.start_stream()
 
+    def start_transcription_stream(self):
+        self.stream = self.p.open(format=pyaudio.paInt16,
+                                  channels=1,
+                                  rate=self.transcription_sample_rate,
+                                  input=True,
+                                  frames_per_buffer=self.chunk_size,
+                                  stream_callback=self.stream_callback)
+        self.stream.start_stream()
+
+    def stop_stream(self):
+        if self.stream is not None:
+            self.stream.stop_stream()
+            self.stream.close()
+            self.stream = None
+
     def stream_callback(self, in_data, frame_count, time_info, status):
-        """
-        Stream callback function.
-        """
+        if self.mode == 'wake_word':
+            data = np.frombuffer(in_data, dtype=np.int16)
+            self.wakeword_buffer.extend(data)
 
-        # Convert the input data to a numpy array
-        data = np.frombuffer(in_data, dtype=np.int16)
+            if self.callback and (len(self.wakeword_buffer) == self.buffer_size):
+                full_wake_buffer = np.array(self.wakeword_buffer)
+                if self.callback(full_wake_buffer):  # If wakeword detected, set flag to stop stream
+                    self.should_stop_stream = True
+                    self.wakeword_buffer.clear()
+                    self.transcription_buffer.clear()
 
-        self.buffer.extend(data)
 
-        # Call the callback function
-        if self.callback and (len(self.buffer) == self.buffer_size):
-            # Grab the FULL buffer
-            full_buffer = np.array(self.buffer)
-            self.callback(full_buffer)
+        elif self.mode == 'transcription':
+            data = np.frombuffer(in_data, dtype=np.int16).astype(np.float32)
+            data = data / np.iinfo(np.int16).max  # Normalize to range [-1, 1]
+            self.transcription_buffer.extend(data)
+
+            if len(self.transcription_buffer) == self.transcription_buffer.maxlen:
+                full_transcription_buffer = np.array(self.transcription_buffer)
+                self.callback(full_transcription_buffer)  # Process transcription
+                self.should_stop_stream = True
+                self.wakeword_buffer.clear()
+                self.transcription_buffer.clear()
 
         return (None, pyaudio.paContinue)
-    
+
     def set_callback(self, callback):
-        """
-        Set the callback function.
-        """
-        print('Setting callback')
         self.callback = callback
 
     def stop(self):
-        """
-        Stop recording audio.
-        """
-        self.stream.stop_stream()
-        self.stream.close()
+        self.stop_stream()
         self.p.terminate()
 
 class WakeWordDetector:
-    def __init__(self, model_class, model_path, sample_rate=8000, threshold=0.6):
-        """
-        Initialize the wake word detector.
-
-        Parameters:
-        - threshold: The threshold for detecting the wake word.
-        """
-        self.model = model_class  # Initialize the model
-        state_dict = torch.load(model_path, weights_only=True, map_location=torch.device('cpu'))  # Load the state dictionary
-        self.model.load_state_dict(state_dict)  # Load the state dict into the model
+    def __init__(self, model_class, model_path, sample_rate=8000, threshold=0.99):
+        self.model = model_class
+        state_dict = torch.load(model_path, weights_only=True, map_location=torch.device('cpu'))
+        self.model.load_state_dict(state_dict)
         self.model.eval()
         self.mel_spectrogram_transform = MelSpectrograms(sample_rate=sample_rate)
         self.threshold = threshold
     
     def detect_wake_word(self, audio_data):
-        """
-        Detect the wake word in the audio data.
-
-        Parameters:
-        - audio_data: The audio data to analyze.
-
-        Returns:
-        - True if the wake word is detected, False otherwise.
-        """
         audio_data = torch.tensor(audio_data, dtype=torch.float32)
-        print(audio_data.shape)
-        
-        audio_data = audio_data.unsqueeze(0)  
+        audio_data = audio_data.unsqueeze(0)
 
         with torch.no_grad(): 
             mel_spectrogram = self.mel_spectrogram_transform(audio_data)
-            print(mel_spectrogram.shape)
             mel_spectrogram = mel_spectrogram.unsqueeze(0)
 
             output = self.model(mel_spectrogram)
@@ -113,31 +108,58 @@ class TranscriptionAndCommands:
     def __init__(self, model):
         self.model = model
 
-    def transcribe(self, audio_date):
-        segments, _ = self.model.transcribe(audio_date, beam_size=5, language='en')
-
+    def transcribe(self, audio_data):
+        segments, _ = self.model.transcribe(audio_data, beam_size=5, language='en')
         text = ''
         for segment in segments:
-            text = segment.text
-        
+            text += segment.text
         return text
 
-# Example usage
-def main():
+    def execute_command(self, command):
+        command = command.lower()
+        if 'turn' in command and 'on' in command and 'fan' in command:
+            print('Turning on fan')
+        elif 'turn' in command and 'off' in command and 'fan' in command:
+            print('Turning off fan')
+        elif 'speed' in command and 'up' in command and 'fan' in command:
+            print('Speeding up fan')
+        elif 'slow' in command and 'down' in command and 'fan' in command:
+            print('Slowing down fan')
+        else:
+            print('Command not recognized')
 
+def main():
     listener = AudioListener()
     detector = WakeWordDetector(CNNGRU(num_classes=2), 'checkpoints/model.pth')
+    transcriber = TranscriptionAndCommands(WhisperModel('small', device='cpu', compute_type='float32'))
 
     def callback(data):
-        if detector.detect_wake_word(data):
-            print('Wake word detected!')
+        if listener.mode == 'wake_word':
+            if detector.detect_wake_word(data):
+                print('Wake word detected')
+                listener.mode = 'transcription'  
+                return True
+            return False
+        elif listener.mode == 'transcription':
+            print('Transcribing')
+            print(data.shape)
+            transcription = transcriber.transcribe(data)
+            print('Transcription:', transcription)
+            transcriber.execute_command(transcription)
+            listener.mode = 'wake_word'  
 
     listener.set_callback(callback)
-    listener.start()
+    listener.start_wakeword_stream()
 
     while True:
-        pass
-
+        time.sleep(0.1)
+        if listener.should_stop_stream:
+            listener.stop_stream()
+            listener.should_stop_stream = False  # Reset the flag
+            if listener.mode == 'transcription':
+                listener.start_transcription_stream()
+            elif listener.mode == 'wake_word':
+                listener.start_wakeword_stream()
 
 if __name__ == "__main__":
     main()
