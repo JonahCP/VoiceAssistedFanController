@@ -82,7 +82,7 @@ class AudioListener:
         self.p.terminate()
 
 class WakeWordDetector:
-    def __init__(self, model_class, model_path, sample_rate=8000, threshold=0.99):
+    def __init__(self, model_class, model_path, sample_rate=8000, threshold=0.999):
         self.model = model_class
         state_dict = torch.load(model_path, weights_only=True, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
@@ -97,6 +97,8 @@ class WakeWordDetector:
         with torch.no_grad(): 
             mel_spectrogram = self.mel_spectrogram_transform(audio_data)
             mel_spectrogram = mel_spectrogram.unsqueeze(0)
+
+            print('Mel spectrogram:', mel_spectrogram)
 
             output = self.model(mel_spectrogram)
             probabilities = torch.softmax(output, dim=1)
@@ -130,7 +132,7 @@ class TranscriptionAndCommands:
 
 def main():
     listener = AudioListener()
-    detector = WakeWordDetector(CNNGRU(num_classes=2), 'checkpoints/model.pth')
+    detector = WakeWordDetector(CNNGRU(num_classes=2), 'checkpoints/model_2.pth')
     transcriber = TranscriptionAndCommands(WhisperModel('small', device='cpu', compute_type='float32'))
 
     def callback(data):
