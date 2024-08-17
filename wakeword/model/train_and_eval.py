@@ -30,11 +30,12 @@ def load_data():
 def initialize_model():
     model = CNNGRU(num_classes=2)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
     model.to(device)
     return model, device
 
 def initialize_optimizer(model):
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001) # type: ignore
     criterion = nn.CrossEntropyLoss()
     return optimizer, criterion
 
@@ -116,6 +117,7 @@ def main():
     num_epochs = 50
     for epoch in range(num_epochs):
         train_one_epoch(model, train_loader, optimizer, criterion, device, writer, epoch)
+        print(f'Finished epoch {epoch}')
         
     test(model, val_loader, criterion, device, writer, epoch)
 

@@ -28,13 +28,43 @@ class PadTrim(nn.Module):
         Returns:
         - waveform: The padded or trimmed audio waveform tensor.
         """
+
         if waveform.size(1) < self.max_length:
             waveform = nn.functional.pad(waveform, (0, self.max_length - waveform.size(1)))
         elif waveform.size(1) > self.max_length:
             waveform = waveform[:, :self.max_length]
         return waveform
+    
+class NormalizeAudio(nn.Module):
+    def forward(self, waveform):
+        return waveform / waveform.abs().max()
+    
+class ResampleAudio(nn.Module):
+    def __init__(self, target_freq=8000):
+        """
+        Initialize the ResampleAudio transformation.
 
-class AddNoise(nn.Module):
+        Parameters:
+        - target_freq: The new sample rate to resample the audio recordings to.
+        """
+        super(ResampleAudio, self).__init__()
+        self.target_freq = target_freq
+
+    def forward(self, waveform, orig_freq):
+        """
+        Resample the input waveform to the new sample rate.
+
+        Parameters:
+        - waveform: The input audio waveform tensor.
+        - orig_freq: The original sample rate of the audio waveform.
+
+        Returns:
+        - waveform: The resampled audio waveform tensor.
+        """
+        waveform = torchaudio.transforms.Resample(orig_freq, self.target_freq)(waveform)
+        return waveform
+
+class GrabNoise(nn.Module):
     def __init__(self, noise_dir, min_scale=0.1, max_scale=0.5):
         """
         Initialize the AddNoise transformation.
@@ -44,36 +74,32 @@ class AddNoise(nn.Module):
         - min_scale: Minimum scaling factor for the noise.
         - max_scale: Maximum scaling factor for the noise.
         """
-        super(AddNoise, self).__init__()
+        super(GrabNoise, self).__init__()
         self.noise_dir = noise_dir
         self.min_scale = min_scale
         self.max_scale = max_scale
         self.noise_files = os.listdir(noise_dir)
 
-    def forward(self, waveform):
+    def forward(self):
         """
-        Add random noise to the waveform at a random scale.
-
-        Parameters:
-        - waveform: The input audio waveform tensor.
+        Grab a random noise file and scale it.
 
         Returns:
-        - waveform: The audio waveform with added noise.
+        - noise: The scaled noise waveform.
+        - sample_rate: The sample rate of the noise waveform.
         """
+
         # Randomly select a noise file
         noise_file = random.choice(self.noise_files)
         noise_path = os.path.join(self.noise_dir, noise_file)
 
         # Load the noise file
-        noise_waveform, _ = torchaudio.load(noise_path)
+        noise_waveform, sample_rate = torchaudio.load(noise_path)
 
         # Randomly scale the noise
         scale = random.uniform(self.min_scale, self.max_scale)
 
-        # Add the noise to the waveform
-        waveform = waveform + scale * noise_waveform
-
-        return waveform
+        return scale * noise_waveform, sample_rate
 
 class MelSpectrograms(nn.Module):
     def __init__(self, sample_rate=8000, n_mels=13, n_fft=512, win_length=512, hop_length=256, f_min=0):
@@ -162,24 +188,44 @@ class WakeWordDataset(Dataset):
         """
         self.file_paths = file_paths
         self.labels = labels
-        self.add_noise = AddNoise(noise_dir)
+        self.add_noise =GrabNoise(noise_dir)
         self.mel_spectrogram = MelSpectrograms(sample_rate)
         self.max_length = max_length
         self.spec_augment = SpecAugment()
+        self.normalize = NormalizeAudio()
+        self.resample = ResampleAudio()
 
     def __len__(self):
         return len(self.file_paths)
     
     def __getitem__(self, idx):
         # Load the audio file
-        waveform, _ = torchaudio.load(self.file_paths[idx])
+        waveform, sample_rate = torchaudio.load(self.file_paths[idx])
         
+        # Apply the ResampleAudio transformation
+        waveform = self.resample(waveform, sample_rate)
+
         # Apply the PadTrim transformation
         waveform = PadTrim(self.max_length)(waveform)
+
+        # Apply the NormalizeAudio transformation
+        waveform = self.normalize(waveform)
         
-        # Apply the AddNoise transformation
-        waveform = self.add_noise(waveform)
+        # Apply the GrabNoise transformation
+        noise, noise_sr = self.add_noise()
+
+        # Apply the ResampleAudio transformation
+        noise = self.resample(noise, noise_sr)
+
+        # Apply the PadTrim transformation
+        noise = PadTrim(self.max_length)(noise)
+
+        # Apply normalization
+        noise = self.normalize(noise)
         
+        # Add the noise to the waveform
+        waveform = waveform + noise
+
         # Apply the MelSpectrograms transformation
         spectrogram = self.mel_spectrogram(waveform)
         
