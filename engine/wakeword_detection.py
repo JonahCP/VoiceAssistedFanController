@@ -62,12 +62,12 @@ class AudioListener:
 
         elif self.mode == 'transcription':
             data = np.frombuffer(in_data, dtype=np.int16).astype(np.float32)
-            data = data / np.iinfo(np.int16).max  # Normalize to range [-1, 1]
+            data = data / np.iinfo(np.int16).max  # Normalize for Whisper
             self.transcription_buffer.extend(data)
 
             if len(self.transcription_buffer) == self.transcription_buffer.maxlen:
                 full_transcription_buffer = np.array(self.transcription_buffer)
-                self.callback(full_transcription_buffer)  # Process transcription
+                self.callback(full_transcription_buffer) # type: ignore
                 self.should_stop_stream = True
                 self.wakeword_buffer.clear()
                 self.transcription_buffer.clear()
@@ -141,7 +141,7 @@ def main():
                 return True
             return False
         elif listener.mode == 'transcription':
-            print('Transcribing')
+            print('Transcribing...')
             print(data.shape)
             transcription = transcriber.transcribe(data)
             print('Transcription:', transcription)
