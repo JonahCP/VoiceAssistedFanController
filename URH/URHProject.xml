@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<UniversalRadioHackerProject description="" collapse_project_tabs="0" modulation_was_edited="0" broadcast_address_hex="ffff">
+  <modulators>
+    <modulator carrier_freq_hz="40000.0" carrier_amplitude="1.0" carrier_phase_deg="0.0" samples_per_symbol="100" name="Modulator" gauss_bt="0.5" gauss_filter_width="1.0" sample_rate="None" modulation_type="ASK" index="0" parameters="0.0,100.0" bits_per_symbol="1"/>
+  </modulators>
+  <device_conf>
+    <apply_dc_correction>True</apply_dc_correction>
+    <bandwidth>1000000.0</bandwidth>
+    <bias_tee_enabled>False</bias_tee_enabled>
+    <freq_correction>1</freq_correction>
+    <frequency>304200000.0</frequency>
+    <gain>49</gain>
+    <name>RTL-SDR</name>
+    <num_sending_repeats>0</num_sending_repeats>
+    <rx_antenna_index>0</rx_antenna_index>
+    <rx_baseband_gain>16</rx_baseband_gain>
+    <rx_gain>49</rx_gain>
+    <rx_if_gain>20</rx_if_gain>
+    <sample_rate>1000000.0</sample_rate>
+    <tx_antenna_index>0</tx_antenna_index>
+    <tx_baseband_gain>16</tx_baseband_gain>
+    <tx_gain>25</tx_gain>
+    <tx_if_gain>20</tx_if_gain>
+  </device_conf>
+  <simulator_rx_conf/>
+  <simulator_tx_conf/>
+  <signal name="LightOff" filename="LightOff.complex16s" samples_per_symbol="400" center="0.04886217217426747" center_spacing="1" tolerance="2" noise_threshold="1.0" noise_minimum="-1.2043446453225375" noise_maximum="0.2043446453225375" modulation_type="ASK" sample_rate="1000000.0" pause_threshold="8" message_length_divisor="2" bits_per_symbol="1" costas_loop_bandwidth="0.1">
+    <messages/>
+  </signal>
+  <open_file name="LightOff.complex16s" position="0"/>
+  <signal name="LightOn" filename="LightOn.complex16s" samples_per_symbol="400" center="0.04886217217426747" center_spacing="1" tolerance="2" noise_threshold="1.0" noise_minimum="-1.2043446453225375" noise_maximum="0.2043446453225375" modulation_type="ASK" sample_rate="1000000.0" pause_threshold="8" message_length_divisor="3" bits_per_symbol="1" costas_loop_bandwidth="0.1">
+    <messages/>
+  </signal>
+  <open_file name="LightOn.complex16s" position="1"/>
+  <signal name="FanSpeed1" filename="FanSpeed1.complex16s" samples_per_symbol="400" center="0.044208656530827284" center_spacing="1" tolerance="2" noise_threshold="1.0" noise_minimum="-1.2043446453225375" noise_maximum="0.2043446453225375" modulation_type="ASK" sample_rate="1000000.0" pause_threshold="8" message_length_divisor="3" bits_per_symbol="1" costas_loop_bandwidth="0.1">
+    <messages/>
+  </signal>
+  <open_file name="FanSpeed1.complex16s" position="2"/>
+  <signal name="FanSpeed2" filename="FanSpeed2.complex16s" samples_per_symbol="400" center="0.043782898457720876" center_spacing="1" tolerance="2" noise_threshold="1.4143" noise_minimum="-1.4961546318796648" noise_maximum="0.4961546318796647" modulation_type="ASK" sample_rate="1000000.0" pause_threshold="8" message_length_divisor="1" bits_per_symbol="1" costas_loop_bandwidth="0.1">
+    <messages/>
+  </signal>
+  <open_file name="FanSpeed2.complex16s" position="3"/>
+  <signal name="FanSpeed3" filename="FanSpeed3.complex16s" samples_per_symbol="400" center="0.0438383175060153" center_spacing="1" tolerance="2" noise_threshold="1.0" noise_minimum="-1.2043446453225375" noise_maximum="0.2043446453225375" modulation_type="ASK" sample_rate="1000000.0" pause_threshold="8" message_length_divisor="3" bits_per_symbol="1" costas_loop_bandwidth="0.1">
+    <messages/>
+  </signal>
+  <open_file name="FanSpeed3.complex16s" position="4"/>
+  <signal name="FanOff" filename="FanOff.complex16s" samples_per_symbol="400" center="0.05157238687388599" center_spacing="1" tolerance="3" noise_threshold="1.0" noise_minimum="-1.2043446453225375" noise_maximum="0.2043446453225375" modulation_type="ASK" sample_rate="1000000.0" pause_threshold="8" message_length_divisor="3" bits_per_symbol="1" costas_loop_bandwidth="0.1">
+    <messages/>
+  </signal>
+  <open_file name="FanOff.complex16s" position="5"/>
+  <group name="New Group" id="0">
+    <cf_protocol filename="LightOff.complex16s"/>
+    <cf_protocol filename="LightOn.complex16s"/>
+    <cf_protocol filename="FanSpeed1.complex16s"/>
+    <cf_protocol filename="FanSpeed2.complex16s"/>
+    <cf_protocol filename="FanSpeed3.complex16s"/>
+    <cf_protocol filename="FanOff.complex16s"/>
+  </group>
+  <protocol>
+    <decodings>
+      <decoding>'Non Return To Zero (NRZ)', </decoding>
+      <decoding>'Non Return To Zero + Invert', 'Invert', </decoding>
+      <decoding>'Manchester I', 'Edge Trigger', </decoding>
+      <decoding>'Manchester II', 'Edge Trigger', 'Invert', </decoding>
+      <decoding>'Differential Manchester', 'Edge Trigger', 'Differential Encoding', </decoding>
+      <decoding>'Jonah', 'Remove Carrier', '10_', </decoding>
+    </decodings>
+    <participants>
+      <participant name="Alice" shortname="A" address_hex="" color_index="0" id="1a66ff20-9fe1-4741-94f1-f1809b025857" relative_rssi="0" simulate="0"/>
+      <participant name="Bob" shortname="B" address_hex="" color_index="1" id="550d1c7e-52f0-478e-8cf6-3dabe6233dfd" relative_rssi="1" simulate="0"/>
+    </participants>
+    <messages>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13541" timestamp="0.001636" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13541" timestamp="0.042288" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13558" timestamp="0.085343" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13568" timestamp="0.128419" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13555" timestamp="0.171515" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13559" timestamp="0.214592" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13557" timestamp="0.257667" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="1285" timestamp="0.30073" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13141" timestamp="0.001636" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13141" timestamp="0.042288" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13158" timestamp="0.085343" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13168" timestamp="0.128419" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13155" timestamp="0.171515" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13159" timestamp="0.214592" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13157" timestamp="0.257667" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="485" timestamp="0.30073" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13157" timestamp="0.004555" decoding_index="5" participant_id="1a66ff20-9fe1-4741-94f1-f1809b025857"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13159" timestamp="0.045228" decoding_index="5" participant_id="1a66ff20-9fe1-4741-94f1-f1809b025857"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13163" timestamp="0.088308" decoding_index="5" participant_id="1a66ff20-9fe1-4741-94f1-f1809b025857"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13164" timestamp="0.131387" decoding_index="5" participant_id="1a66ff20-9fe1-4741-94f1-f1809b025857"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13164" timestamp="0.174475" decoding_index="5" participant_id="1a66ff20-9fe1-4741-94f1-f1809b025857"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13164" timestamp="0.217565" decoding_index="5" participant_id="550d1c7e-52f0-478e-8cf6-3dabe6233dfd"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13161" timestamp="0.260654" decoding_index="5" participant_id="550d1c7e-52f0-478e-8cf6-3dabe6233dfd"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="3330" timestamp="0.303742" decoding_index="5" participant_id="550d1c7e-52f0-478e-8cf6-3dabe6233dfd"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13952" timestamp="0.002779" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13959" timestamp="0.043434" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13950" timestamp="0.086505" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13953" timestamp="0.129562" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13960" timestamp="0.17272" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13951" timestamp="0.215784" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13962" timestamp="0.258845" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="3178" timestamp="0.301911" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13160" timestamp="0.00196" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13161" timestamp="0.04265" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13161" timestamp="0.08575" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13154" timestamp="0.128843" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13154" timestamp="0.171927" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13152" timestamp="0.215006" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13157" timestamp="0.258093" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="2095" timestamp="0.301176" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13157" timestamp="0.002184" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13157" timestamp="0.042836" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13154" timestamp="0.0859" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13155" timestamp="0.128963" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13157" timestamp="0.17203" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13155" timestamp="0.215087" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="13153" timestamp="0.258141" decoding_index="5"/>
+      <message message_type_id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" modulator_index="0" pause="2080" timestamp="0.301205" decoding_index="5"/>
+    </messages>
+    <message_types>
+      <message_type name="Default" id="0da9096f-63ec-4e6f-8d5f-856059e72a4d" assigned_by_ruleset="0" assigned_by_logic_analyzer="0">
+        <label name="synchronization" start="0" end="24" color_index="0" apply_decoding="True" show="2" display_format_index="0" display_bit_order_index="0" display_endianness="big" fuzz_me="2" fuzz_values="" auto_created="True"/>
+        <label name="sequence number" start="24" end="40" color_index="1" apply_decoding="True" show="2" display_format_index="3" display_bit_order_index="0" display_endianness="big" fuzz_me="2" fuzz_values="" auto_created="True"/>
+        <label name="sequence number" start="40" end="56" color_index="2" apply_decoding="True" show="2" display_format_index="3" display_bit_order_index="0" display_endianness="big" fuzz_me="2" fuzz_values="" auto_created="True"/>
+        <label name="sequence number" start="56" end="72" color_index="3" apply_decoding="True" show="2" display_format_index="3" display_bit_order_index="0" display_endianness="big" fuzz_me="2" fuzz_values="" auto_created="True"/>
+        <ruleset mode="0"/>
+      </message_type>
+    </message_types>
+  </protocol>
+  <simulator_config>
+    <items/>
+  </simulator_config>
+</UniversalRadioHackerProject>
