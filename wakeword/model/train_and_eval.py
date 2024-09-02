@@ -41,7 +41,7 @@ def initialize_optimizer(model):
 
 def initialize_tensorboard():
     current_time = datetime.now().strftime('%b%d_%H-%M-%S')
-    log_dir = f'logs/{current_time}'
+    log_dir = f'results/logs/{current_time}'
     writer = SummaryWriter(log_dir)
     return writer
 

@@ -132,7 +132,7 @@ class TranscriptionAndCommands:
 
 def main():
     listener = AudioListener()
-    detector = WakeWordDetector(CNNGRU(num_classes=2), 'checkpoints/model_2.pth')
+    detector = WakeWordDetector(CNNGRU(num_classes=2), 'checkpoints/model.pth')
     transcriber = TranscriptionAndCommands(WhisperModel('small', device='cpu', compute_type='float32'))
 
     def callback(data):

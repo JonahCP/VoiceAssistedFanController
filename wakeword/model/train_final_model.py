@@ -20,7 +20,7 @@ def initialize_optimizer(model):
 
 def initialize_tensorboard():
     current_time = datetime.now().strftime('%b%d_%H-%M-%S')
-    log_dir = f'logs/{current_time}'
+    log_dir = f'results/logs/{current_time}'
     writer = SummaryWriter(log_dir)
     return writer
 
@@ -45,7 +45,7 @@ def train_full_model(model, train_loader, optimizer, criterion, device, writer, 
                 running_loss = 0.0
 
         # Save the model checkpoint at each epoch
-        torch.save(model.state_dict(), f"checkpoints/model_epoch_{epoch}.pth")
+        torch.save(model.state_dict(), f"results/checkpoints/model_epoch_{epoch}.pth")
         print(f"Epoch {epoch} completed and model saved.")
 
     writer.add_text('Training Summary', f'Training completed for {num_epochs} epochs.')
