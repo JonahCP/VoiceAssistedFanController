@@ -5,8 +5,8 @@ This project implements a voice recognition system on a Raspberry Pi to control 
 
 ## Setup Instructions
 
-1. Ensure Python Version 3.11
-Make sure you have Python version 3.11 installed on your system. You can check your Python version by runing:
+1. Ensure Python Version 3.12
+Make sure you have Python version 3.12 installed on your system. You can check your Python version by runing:
 ```bash
 python --version
 ```
